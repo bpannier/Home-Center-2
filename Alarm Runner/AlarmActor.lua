@@ -10,8 +10,10 @@ alarm
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- 
--- Home Center 2 Lua Scene which monitors an alarm state flagged by a global variable.
--- At the end own code can be provided with alarm reasons.
+-- Home Center 2 Lua Scene which monitors an alarm state flagged by a global
+-- variable. It is the second part of a two scene alarm approach.
+--
+-- At the end of this script own code can be provided.
 --
 -- by Benjamin Pannier <github@ka.ro>
 ------------------------------------------------------------------------------

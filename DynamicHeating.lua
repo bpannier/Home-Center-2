@@ -14,7 +14,7 @@ BenStatus
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- 
--- Home Center 2 Lua Scene which does dynamic heating based on HC heating
+-- Home Center 2 Lua Scene which does dynamic heating based on HC2 heating
 -- plan. When movement is detected it takes the actual temperature and adds
 -- some degrees on it for the next hours. All values can be configured.
 -- Add all motion sensores in the header of the script as well.

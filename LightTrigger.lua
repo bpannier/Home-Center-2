@@ -1,7 +1,7 @@
 --[[
 %% properties
-45 values
-91 values
+45 value
+91 value
 %% weather
 %% events
 %% autostart
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------------
 -- 
 -- Home Center 2 Lua Scene which checks if one sensor is reporting bright light
--- react on it, an other sensor is checked if it gets dark again. Both will
+-- react on it, an other sensor is checked if it is gets dark again. Both will
 -- trigger some actions.
 -- I use this simple script to lower the blinds if the sun is shining on the
 -- books and open them again when its gets dark.

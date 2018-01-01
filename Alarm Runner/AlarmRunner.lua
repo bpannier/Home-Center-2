@@ -20,7 +20,7 @@ DisableAlarm
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- 
--- Home Center 2 Lua Scene which a better replacement for the HC alarm center.
+-- Home Center 2 Lua Scene which is a better replacement for the HC alarm center.
 -- It checks if a presence is detected through given global variables. If
 -- presence is detected the system will not be armed. If no presence is 
 -- detected the system is armed after given seconds unless there is movement
