@@ -98,6 +98,9 @@ local diagnosticsFrequency = 20 -- every 20 seconds
 local diagnosticsDevicename = "HC2"
 
 -- what are the global variables which will be dumped
+--
+-- variableList = { deviceClass = { globalVariableName, ..  } .. }
+--
 local variableList =
 {
   variable = {"BenStatus", "alarm", "DisableAlarm"}
@@ -108,6 +111,9 @@ local variableList =
 -- like all temperature sensors. The value is an other array of key, value pairs.
 -- These pairs are the name which will be used to store the  device value with the given
 -- device id.
+--
+-- deviceList = { deviceClass = { deviceName = deviceID, .. } .. }
+--
 local deviceList =
 {
   temperature = { netatmoOben = 54, wohnzimmer = 90, flurOben = 44, kueche = 161, kammer = 105,  schlafzimmer = 61, flurUnten = 149, terasse = 59, buero = 168, tuerUnten = 173, bad = 193},
