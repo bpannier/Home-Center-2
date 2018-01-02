@@ -24,7 +24,7 @@
 local debug = 3
 
 local checkBrightnessDeviceID = 45
-local checkDarknessDeviceID = 91
+local checkDarknessDeviceID = 162
 
 local whenIsItTooBright = 160
 local whenIsItTooDark = 70

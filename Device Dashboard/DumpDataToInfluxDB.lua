@@ -67,13 +67,18 @@ DisableAlarm
 -- InfluxDB and use additionally Grafana to visualise the data in a great way.
 -- Add all device id's and global variables to the beginning of this script.
 --
+-- There is a way how to dump values manually from an other scene or virtual
+-- device. An example is given in the same directory. Be careful with this
+-- as otherwise the amount of simultaneously running threads will exceeded 
+-- the limit and HC will not run the scene at all.
+--
 -- An example Grafana Dashboard is provided as well.
 --
 -- by Benjamin Pannier <github@ka.ro>
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
-local debug = 1
+local debug = 2
 
 -- on which host does InfluxDB run. Be careful with DHCP hostnames as
 -- Home Center 2 has an issue with dynamic changing of IP addresses.
@@ -320,6 +325,123 @@ local function processEndlessLoop()
 end
 
 -------------------------------------------------------------------------------
+local function tableToString(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. tableToString(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+-------------------------------------------------------------------------------
+-- This hack is used with pcall to make sure can emulate a try catch statement
+local decodeJsonVarIn
+local decodeJsonVarOut
+local function decodeJsonFunc()
+  decodeJsonVarOut = json.decode(decodeJsonVarIn)
+end
+
+-------------------------------------------------------------------------------
+local function dumpGivenSceneParameters(params)
+  local deviceClass
+  local deviceName
+  local values
+  
+  local trigger = false
+  
+  for k, vals in ipairs(params) do
+    -- there could be multiple requests in one, iterate through all of them 
+    
+    for key, value in pairs(vals) do
+      -- check what have been given within the parameters and save the variables
+      
+      if key == "deviceClass" then
+        deviceClass = value
+      elseif key == "deviceName" then
+        deviceName = value
+      elseif key == "values" then
+        values = value
+      elseif key == "trigger" then
+        trigger = true
+      else
+        log(0, "Unknown parameter received: " .. key .. " = " .. tostring(value))
+      end
+    end
+  
+    if trigger then
+      -- external trigger event received dump all values
+      
+      log(4, "External trigger received.")
+      if diagnosticsFrequency > 0 then
+        processDiagnosticData()
+      end
+
+      processDevicesAndVariables()
+    else
+      -- check and and dump the given arguments 
+      
+      if deviceClass == nil or deviceName == nil or values == nil then
+        log(0, "Wrong/missing parameters received: " .. tableToString(params))
+      else
+      
+        local requestBody = deviceClass .. ",device=" .. deviceName .. " "
+        
+        -- quite hacky, making sure corrupted parameters do not brake the running process
+        decodeJsonVarIn = values
+        decodedValues = nil
+        local status, err = pcall(decodeJsonFunc)
+        
+        if status == false then
+          -- try the given value again with adding {} around the given value
+          
+          log(2, "Given parameter could not be decoded, try it again with {} surrounded: " .. values)
+          decodeJsonVarIn = "{" .. values .. "}"
+          status, err = pcall(decodeJsonFunc)
+        end
+        
+        if status == false then
+          log(0, "Received parameter can not be decoded via JSON: '" .. err .. "': " .. tableToString(params))
+        else
+          decodedValues = decodeJsonVarOut
+          
+          if decodedValues == nil then
+            log(0, "Received parameter value is empty: " .. tableToString(params))
+          else
+            local counter = 0
+            
+            log(0, "1")
+            for k,v in pairs(decodedValues) do 
+              
+              if type(v) == "table" then
+                log(0, "Value of parameter is a table, ignored: " .. k .. " = " .. tostring(v))
+              else
+                if counter > 0 then
+                  requestBody = requestBody .. ","
+                end
+                
+                requestBody = requestBody .. k .. "=" .. v
+                counter = counter + 1
+              end
+            end
+          
+            if counter == 0 then
+              log(0, "Not enough parmeter sent: " .. requestBody .. " - " .. tostring(values))
+            else
+              sendData("parameterDump", requestBody, true)
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
 -- Main loop starts here
 -------------------------------------------------------------------------------
 
@@ -336,11 +458,19 @@ elseif (sourceTrigger['type'] == 'global') then
 else
   log(1,'Trigger: ' .. sourceTrigger['type'])
   
-  if diagnosticsFrequency > 0 then
-    processDiagnosticData()
-  end
+  local params = fibaro:args()
   
-  processDevicesAndVariables()
+  if (params) then
+    dumpGivenSceneParameters(params)
+  else
+    -- no parameters received, run usual dump procedure
+    
+    if diagnosticsFrequency > 0 then
+      processDiagnosticData()
+    end
+  
+    processDevicesAndVariables()
+  end
 end
 
 if (sourceTrigger['type'] == 'autostart' and (dumpFrequency > 0 or diagnosticsFrequency > 0)) then
