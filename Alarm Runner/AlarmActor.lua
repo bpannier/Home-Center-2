@@ -142,6 +142,7 @@ elseif tonumber(fibaro:getGlobalValue(alarmVariable)) >= 1 or sourceTrigger["typ
   -- following works only with iOS
   fibaro:call(140, "sendPush", "ALARM: " .. getAlarmReason())
   
+  -- add a notification on your HC2 interface desktop and mobile
   HomeCenter.PopupService.publish({
 	 title = 'ALARM',
 	 subtitle = os.date("%H:%M:%S | %B %d, %Y"),
