@@ -135,11 +135,20 @@ elseif tonumber(fibaro:getGlobalValue(alarmVariable)) >= 1 or sourceTrigger["typ
   sendData("IFTTT", "http://maker.ifttt.com/trigger/Alarm/with/key/" .. iftttKey, "POST", '{"value1":"' .. getAlarmReason() .. '", "value2":"' .. os.date() .. '"}', true)
   
   -- send an Email to User #2 with subject and message body
-	fibaro:call(2, "sendEmail", "ALARM at home: " .. getAlarmReason(), "At home an alarm occured: " .. getAlarmReason());
+	fibaro:call(2, "sendEmail", "ALARM at home: " .. getAlarmReason(), "At home an alarm occured: " .. getAlarmReason())
   
   -- send a push notification #5 to device #140
 	--fibaro:call(140, "sendDefinedPushNotification", "5");
   -- following works only with iOS
-  fibaro:call(140, "sendPush", "ALARM: " .. getAlarmReason());
+  fibaro:call(140, "sendPush", "ALARM: " .. getAlarmReason())
+  
+  HomeCenter.PopupService.publish({
+	 title = 'ALARM',
+	 subtitle = os.date("%H:%M:%S | %B %d, %Y"),
+	 contentTitle = 'ALARM at home',
+	 contentBody = 'Reason: ' .. getAlarmReason(),
+   type = 'Critical'
+   --img = "http://fibarouk.co.uk/img/slider_icon_3.jpg",
+	})
   
 end
