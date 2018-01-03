@@ -78,7 +78,7 @@ DisableAlarm
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
-local debug = 2
+local debug = 1
 
 -- on which host does InfluxDB run. Be careful with DHCP hostnames as
 -- Home Center 2 has an issue with dynamic changing of IP addresses.
@@ -88,7 +88,7 @@ local influxdbDBName = "hc2"
 
 -- timer if greater 0 it will dump each X seconds all device values, we do this to 
 -- avoid triangle diagrams in the visualisation
-local dumpFrequency = 10 * 60 -- every 10 minutes
+local dumpFrequency = 5 * 60 -- every 10 minutes
 
 -- If you like to disable the capturing of all diagnostic values of your Home Center Box set it to 0
 -- The value should be much smaller than the dumpFrequency otherwise there will be an issue with the calculation for the right frequency for the device data
@@ -420,7 +420,6 @@ local function dumpGivenSceneParameters(params)
           else
             local counter = 0
             
-            log(0, "1")
             for k,v in pairs(decodedValues) do 
               
               if type(v) == "table" then

@@ -5,7 +5,7 @@
 --]]
 
 -- A scene which shows all known functions and variables available on a Fibaro Home Center 2.
--- Original from: https://forum.fibaro.com/index.php?/topic/28094-solved-how-to-get-scene-id-within-its-code/&tab=comments#comment-137956
+-- Original from: https://forum.fibaro.com/index.php?/topic/28094-solved-how-to-get-scene-id-within-its-code/&tab=comments#comment-137115
 
 
 function printTable(tab,indt, pre)
