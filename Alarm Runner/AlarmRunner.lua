@@ -20,21 +20,23 @@ DisableAlarm
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- 
--- Home Center 2 Lua Scene which is a better replacement for the HC alarm center.
+-- This Home Center 2 Lua Scene is a better replacement for the HC alarm center.
 -- It checks if a presence is detected through given global variables. If
 -- presence is detected the system will not be armed. If no presence is 
 -- detected the system is armed after given seconds unless there is movement
 -- detected. Any movement can delay arming the system, if not turned off. We
--- use this for our cleaning help. Once the system is armed, any motion or 
--- door will fire an alarm. One global variable can be used for manual 
+-- use this for our cleaning help for example. Once the system is armed, any  
+-- motion or door will fire an alarm. One global variable can be used for manual 
 -- disarming.
--- I suggest you do not edit this script to react on an alarm. There is an 
--- other script which can be used to react on an alarm.
+-- I suggest not to edit this script to react on an alarm. There is an 
+-- other script which can be used to react on an alarm in the same directory on
+-- Github.
 --
 -- Add all your motion, door sensor device ids and the global presence 
 -- variables at the beginning of this script.
 --
 -- by Benjamin Pannier <github@ka.ro>
+-- latest version: https://github.com/bpannier/Home-Center-2/tree/master/Alarm%20Runner
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 

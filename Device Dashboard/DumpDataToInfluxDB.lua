@@ -82,9 +82,13 @@ DisableAlarm
 -- as otherwise the amount of simultaneously running threads will exceeded 
 -- the limit and HC will not run the scene at all.
 --
+-- Increase the maximum amount of simultaneously instances for this scene to 
+-- 10 in the HC2 configuration.
+--
 -- An example Grafana Dashboard is provided as well.
 --
 -- by Benjamin Pannier <github@ka.ro>
+-- latest version: https://github.com/bpannier/Home-Center-2/tree/master/Device%20Dashboard
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
