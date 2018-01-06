@@ -2,7 +2,6 @@
 %% properties
 %% events
 %% globals
-BenStatus
 --]]
 
 -- An example how to do remote logging. 
