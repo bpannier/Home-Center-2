@@ -15,8 +15,8 @@
 99 power
 158 power
 160 value
-148 value
-89 value
+148 value 
+89 value 
 43 value
 29 value
 31 value
@@ -41,6 +41,8 @@
 89 tamper
 43 tamper
 103 tamper
+167 tamper
+192 tamper
 103 value
 172 value
 173 value
@@ -49,6 +51,14 @@
 194 value
 195 value
 196 value
+29 targetLevel
+31 targetLevel
+15 targetLevel
+17 targetLevel
+21 targetLevel
+23 targetLevel
+25 targetLevel
+27 targetLevel
 %% autostart
 %% events
 %% globals
@@ -92,7 +102,7 @@ local dumpFrequency = 5 * 60 -- every 10 minutes
 
 -- If you like to disable the capturing of all diagnostic values of your Home Center Box set it to 0
 -- The value should be much smaller than the dumpFrequency otherwise there will be an issue with the calculation for the right frequency for the device data
-local diagnosticsFrequency = 20 -- every 20 seconds
+local diagnosticsFrequency = 30 -- every 30 seconds
 
 -- under which devicename should the diagnostics Home Center Data be stored
 local diagnosticsDevicename = "HC2"
@@ -119,13 +129,14 @@ local deviceList =
   temperature = { netatmoOben = 54, wohnzimmer = 90, flurOben = 44, kueche = 161, kammer = 105,  schlafzimmer = 61, flurUnten = 149, terasse = 59, buero = 168, tuerUnten = 173, bad = 193},
   energy = { leselampe = 33, hifi = 101, wohnLampe = 156, waschmaschine = 95, trockner = 99, edv = 158 },
   motion = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, buero = 167, bad = 192 },
-  thermostat = { tv = 29, sofa = 31, buero = 15, flurUnten = 17, schlafzimmer = 21, flurLinks = 23, flurMitte = 25, kueche = 27},
+  thermostat        = { tv = 29, sofa = 31, buero = 15, flurUnten = 17, schlafzimmer = 21, flurLinks = 23, flurMitte = 25, kueche = 27},
+  thermostat_target = { tv = 29, sofa = 31, buero = 15, flurUnten = 17, schlafzimmer = 21, flurLinks = 23, flurMitte = 25, kueche = 27},
   door = { balkonWohn = 135, oben = 138, balkonKueche = 132, unten = 172},
   light = { kueche = 162, flurOben = 45, wohnzimmer = 91, flurUnten = 150, buero = 169, bad = 194 },
   co2 = {netatmoOben = 55, schlafzimmer = 63},
   humidity = {netatmoOben = 56, terasse = 60, schlafzimmer = 62, bad = 195},
   rain = {terasse = 64},
-  tamper = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, kammer = 103 },
+  tamper = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, kammer = 103, buero = 167, bad = 192 },
   water = { waschmaschine = 103 },
   uv = { bad = 196 }
 }
@@ -136,7 +147,8 @@ local deviceList =
 local deviceValueLookup =
 {
   energy = "power",
-  tamper = "tamper"
+  tamper = "tamper",
+  thermostat_target = "targetLevel"
 }
 
 -- the default lookup key for the z-wave devices which are not given in deviceValueLookup
@@ -148,12 +160,17 @@ local reportDeadDevice = true
 -- how long will be wait for each dump request.
 local tcpTimeout = 10 * 1000
 
+-- if set after an amount of write to the db problems some warning will be trigged
+-- 0 to disable
+local warnOnConnectionProblems = 50
+
 -------------------------------------------------------------------------------
 -- Internal variables
 -------------------------------------------------------------------------------
 
 local wakeupFrequency = dumpFrequency * 1000
 local nextDumpTime = 0
+local problemCounter = 0
 
 -------------------------------------------------------------------------------
 -- Functions
@@ -170,7 +187,13 @@ local function errorlog(str)
 end
 
 -------------------------------------------------------------------------------
-local function sendData (id, requestBody, retryAgain)
+local function connectionProblems()
+  -- send an Email to User #2 with subject and message body
+	fibaro:call(2, "sendEmail", "HC2: Can not connect to InfluxDB", "At your HomeCenter2 the data dumper can not connect to InfluxDB, problem counter: " .. tostring(problemCounter))
+end
+
+-------------------------------------------------------------------------------
+local function sendData(id, requestBody, retryAgain)
   local url = "http://" .. influxdbHost .. ":" .. influxdbPort .. "/write?db=" .. influxdbDBName
   local httpClient = net.HTTPClient({timeout=tcpTimeout})
 
@@ -189,6 +212,8 @@ local function sendData (id, requestBody, retryAgain)
         if (retryAgain == true) then
           sendData(id, requestBody, false)
         end
+      else
+        problemCounter = 0
       end
     end,
     error = function(response)
@@ -196,6 +221,13 @@ local function sendData (id, requestBody, retryAgain)
       errorlog(id .. ": request '" .. query .. "' failed " .. tostring(response) .. " -- R:" .. tostring(retryAgain))
       if (retryAgain == true) then
         sendData(id, requestBody, false)
+      else
+        problemCounter = problemCounter + 1
+        
+        if warnOnConnectionProblems > 0 and problemCounter % warnOnConnectionProblems == 0 then
+          -- it is time to warn about connection problems, will be repeated every 'warnOnConnectionProblems' times
+          connectionProblems()
+        end
       end
     end
   })
@@ -457,7 +489,7 @@ if (sourceTrigger['type'] == 'property') then
   processDevice(sourceTrigger['deviceID'])
   
 elseif (sourceTrigger['type'] == 'global') then
-  log(1,'Trigger: Global variable source = ' .. sourceTrigger['name'])
+  log(2,'Trigger: Global variable source = ' .. sourceTrigger['name'])
   processVariable(sourceTrigger['name'])
   
 else
