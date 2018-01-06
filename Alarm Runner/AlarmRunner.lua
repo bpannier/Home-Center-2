@@ -64,6 +64,8 @@ local storeStateVariable = "alarm_state"
 -- we could do this with multiple global variables also we like only to use one
 local runtime = { state = "", stateChangeTime = 0, reason = "" }
 
+local sourceTrigger = fibaro:getSourceTrigger()
+
 ------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------
@@ -273,7 +275,7 @@ local function checkAlarm()
           setAlarmDelayedState("Motion detected after arming.")
         end
       elseif checkForMotion() then
-        log("Motion detected, reset timer to : " .. tostring(secondsWhereMovementIsOKBeforeArm()))
+        log("Motion detected, reset timer to : " .. tostring(secondsWhereMovementIsOKBeforeArm))
         setDisarmedState() -- as there is movement we reset the time and state to disarmed
       else
         log("No presence, no motion, time to arm: " .. tostring(secondsWhereMovementIsOKBeforeArm - howManySecondsSinceLastStateChange()))
@@ -282,12 +284,12 @@ local function checkAlarm()
       
       if checkForMotion() then
         log("Motion detected while armed.")
-        setAlarmDelayedState("Motion detected.")
+        setAlarmDelayedState("Motion detected: " .. sourceTrigger['propertyName'])
       end
       
       if checkAllDoors() then
         log("Door detected while armed.")
-        setAlarmDelayedState("Door change detected.")
+        setAlarmDelayedState("Door change detected: " .. sourceTrigger['propertyName'])
       end
     else
       errorlog("Unknown state: " .. getState())
@@ -298,8 +300,6 @@ end
 -------------------------------------------------------------------------------
 -- Main loop starts here
 -------------------------------------------------------------------------------
-
-local sourceTrigger = fibaro:getSourceTrigger()
 
 if sourceTrigger['type'] == 'autostart' then
   setupState()
