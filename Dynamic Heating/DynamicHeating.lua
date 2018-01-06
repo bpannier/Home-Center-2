@@ -11,21 +11,6 @@
 BenStatus
 --]]
 
---[[
-23 value
-23 targetLevel
-27 value
-27 targetLevel
-31 value
-31 targetLevel
-25 value
-25 targetLevel
-29 value
-29 targetLevel
-15 value
-15 targetLevel
---]]
-
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 --
@@ -46,6 +31,8 @@ BenStatus
 --   -the id's of your heating plans you like to build on (heatingIDList)
 --   -the presence variables if you have any (presenceDetection)
 --
+-- by Benjamin Pannier <github@ka.ro>
+-- latest version: https://github.com/bpannier/Home-Center-2/tree/master/Dynamic%20Heating
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
@@ -400,42 +387,6 @@ local function checkLoop()
   log(4, "Wake up.")
   checkTemperature()
   setTimeout(checkLoop, checkTemperatureEveryMinutes * 60 * 1000)
-end
-
--------------------------------------------------------------------------------
--- to be removed. 
-local function checkDynamicSceneTrigger()
-  
-  local now = os.time()
-  
-  local scene = api.get("/scenes/" .. tostring(__fibaroSceneId))
-  
-  if scene == nil then
-    errorLog("Can not get current scene details: " .. tostring(__fibaroSceneId))
-    return
-  end
-  
-  local knownDevice = {}
-  
-  for _, value in ipairs(scene["triggers"]["properties"]) do 
-    knownDevice[value["id"]] = true
-  end
-  
-  -- go through all given heating scenes
-  for key, heatingID in ipairs(heatingIDList) do
-    local logAppend = ""
-    local heatingDetails = getHeatingPanelDetailsFor(now, heatingID)
-    
-    -- go through all devices which are part of this heating plan
-    for deviceID, device in pairs(heatingDetails["devices"]) do
-      if knownDevice[deviceID] == nil then
-        log(1, "Edit scene configuation and add device '" .. device["name"] .. "' (" .. tostring(deviceID) .. ") (value and targetLevel) as trigger for this scene.")
-      end
-    end
-  end
-  
-  api.put("/scenes/" .. tostring(__fibaroSceneId), scene)
-
 end
 
 -------------------------------------------------------------------------------
