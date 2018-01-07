@@ -252,8 +252,8 @@ local function increaseTemperature(maxUntilWhen)
       logAppend = logAppend .. "(presence) "
     end
     
-    if maxUntilWhen and maxUntilWhen > untilWhen then
-      untilWhen = untilWhen
+    if maxUntilWhen ~= nil and maxUntilWhen <= untilWhen then
+      untilWhen = maxUntilWhen
       logAppend = logAppend .. "(maxUntilWhen) "
     end
     
@@ -285,7 +285,7 @@ local function increaseTemperature(maxUntilWhen)
     
     -- for debugging only
     if (sourceTrigger['type'] == 'property') then
-      logAppend = logAppend .. "(D:" .. sourceTrigger['propertyName'] .. ") "
+      logAppend = logAppend .. "(D:" .. sourceTrigger['deviceID'] .. ") "
     end
     
     local deviceListStr = ""
@@ -337,8 +337,10 @@ local function checkTemperature()
   local state = fibaro:getGlobal(stateVariableName)
   local untilWhen = tonumber(state)
   
-  if untilWhen < now then
-    -- there is nothing to do for us
+  if untilWhen == 0 then
+    return
+  elseif untilWhen < now then
+    resetTemperature()
     return
   end
   
@@ -378,7 +380,7 @@ local function resetTemperature()
   end
   
   -- reset state
-    fibaro:setGlobal(stateVariableName, "0")
+  fibaro:setGlobal(stateVariableName, "0")
 end
 
 -------------------------------------------------------------------------------
