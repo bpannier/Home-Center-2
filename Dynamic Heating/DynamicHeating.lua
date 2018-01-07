@@ -31,12 +31,19 @@ BenStatus
 --   -the id's of your heating plans you like to build on (heatingIDList)
 --   -the presence variables if you have any (presenceDetection)
 --
+-- This is the third implementation with the same goal of me. The other
+-- implementations failed because of the Home Center 2 did not behave as 
+-- expected. For example modifying the manual value in the heating plan resulted
+-- in that not all devices in one heating plan were steered in the same way.
+-- What seems to work now is to use the heating plan as guidance and to control
+-- the devices directly. 
+--
 -- by Benjamin Pannier <github@ka.ro>
 -- latest version: https://github.com/bpannier/Home-Center-2/tree/master/Dynamic%20Heating
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
-local debug = 3
+local debug = 2
 
 -- Add motion sensor id's to properties at the beginning of this scene in properties area
 
@@ -59,7 +66,7 @@ local increaseTemperaturePresenceForMinutes = 120
 ------------------------------------------------------------------------------
 
 -- How often does this script check the actual temperature
-local checkTemperatureEveryMinutes = 10
+local checkTemperatureEveryMinutes = 5
 
 -- Name of the global variable to store our state
 -- States are 0: Not incremented temperature yet; >0 incremented until the given time; -1: turned off
@@ -257,6 +264,11 @@ local function increaseTemperature(maxUntilWhen)
       logAppend = logAppend .. "(maxUntilWhen) "
     end
     
+    if untilWhen <= now then
+      -- nothing to do for us
+      return
+    end
+    
     -- remember until when we intend to increase the temperature
     fibaro:setGlobal(stateVariableName, tostring(untilWhen))
     
@@ -331,33 +343,11 @@ local function increaseTemperature(maxUntilWhen)
 end
 
 -------------------------------------------------------------------------------
--- Validate if we should have increased the temperature
-local function checkTemperature()
-  local now = os.time()
-  local state = fibaro:getGlobal(stateVariableName)
-  local untilWhen = tonumber(state)
-  
-  if untilWhen == 0 then
-    return
-  elseif untilWhen < now then
-    resetTemperature()
-    return
-  end
-  
-  increaseTemperature(untilWhen)
-end
-
--------------------------------------------------------------------------------
 -- Resets always the temperature, independent of the current state unless turned off
 local function resetTemperature()
   local now = os.time()
   local state = fibaro:getGlobal(stateVariableName)
   local untilWhen = tonumber(state)
-  
-  if untilWhen < now then
-    -- there is nothing to do for us
-    return
-  end
   
   -- go through all given heating scenes
   for key, heatingID in ipairs(heatingIDList) do
@@ -384,6 +374,24 @@ local function resetTemperature()
 end
 
 -------------------------------------------------------------------------------
+-- Validate if we should have increased the temperature
+local function checkTemperature()
+  local now = os.time()
+  local state = fibaro:getGlobal(stateVariableName)
+  local untilWhen = tonumber(state)
+  
+  if untilWhen == 0 then
+    return
+  elseif untilWhen <= now then
+    log(1, "Time is up.")
+    resetTemperature()
+    return
+  end
+  
+  increaseTemperature(untilWhen)
+end
+
+-------------------------------------------------------------------------------
 -- check every X minutes if the temperature is still ok
 local function checkLoop()
   log(4, "Wake up.")
@@ -398,7 +406,14 @@ end
 setup()
 
 if sourceTrigger['type'] == 'autostart' then
-  log(1, 'Trigger: Autostart')
+  local state = fibaro:getGlobal(stateVariableName)
+  local untilWhen = tonumber(state)
+    
+  if untilWhen > 0 then
+    log(1, 'Trigger: Autostart, system is already running until ' .. os.date("%x %X", untilWhen))
+  else    
+    log(1, 'Trigger: Fresh Autostart.')
+  end
   checkLoop()
   
 elseif sourceTrigger['type'] == 'global' then
