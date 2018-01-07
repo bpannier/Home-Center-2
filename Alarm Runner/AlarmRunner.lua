@@ -65,6 +65,7 @@ local storeStateVariable = "alarm_state"
 
 -- we could do this with multiple global variables also we like only to use one
 local runtime = { state = "", stateChangeTime = 0, reason = "" }
+local stateChanged = false
 
 local sourceTrigger = fibaro:getSourceTrigger()
 
@@ -117,6 +118,7 @@ local function setDisarmedState()
   runtime.state = getDisarmedState()
   runtime.stateChangeTime = os.time()
   runtime.reason = ""
+  stateChanged = true
 end
 
 ------------------------------------------------------------------------------
@@ -126,6 +128,7 @@ local function setArmedState()
   end
   runtime.state = getArmedState()
   runtime.stateChangeTime = os.time()
+  stateChanged = true
 end
 
 ------------------------------------------------------------------------------
@@ -157,6 +160,7 @@ local function setAlarmDelayedState(reason)
       -- alarm delayed can only be set ones after that the alarm is triggered
       runtime.state = getAlarmDelayedState()
       runtime.stateChangeTime = os.time()
+      stateChanged = true
     else
       setOffAlarm(reason)
     end
@@ -191,9 +195,11 @@ end
 
 ------------------------------------------------------------------------------
 local function saveState()
-  store = json.encode(runtime)
-  fibaro:setGlobal(storeStateVariable, store)
-  -- log("En S: " .. runtime.state .. " - " .. tostring(runtime.stateChangeTime))
+  if stateChanged == true then
+    store = json.encode(runtime)
+    fibaro:setGlobal(storeStateVariable, store)
+    -- log("En S: " .. runtime.state .. " - " .. tostring(runtime.stateChangeTime))
+  end
 end
 
 ------------------------------------------------------------------------------
