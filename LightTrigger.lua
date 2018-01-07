@@ -27,7 +27,11 @@ local checkBrightnessDeviceID = 45
 local checkDarknessDeviceID = 162
 
 local whenIsItTooBright = 160
-local whenIsItTooDark = 70
+local whenIsItTooDark = 60
+
+local timeBetweenStateChangeInMinutes = 60
+
+local frequencyToCheckInMinutes = 60
 
 local stateVariableName = "buecherSchutz"
 
@@ -59,7 +63,7 @@ local function sendData (id, url, method, requestBody, retryAgain)
     },
     success = function(response)
       if (response.status >= 200 and response.status < 300) then
-        log(2, id .. ": url call was successful: " .. response.status .. " - " .. url .. " - " .. requestBody)
+        log(3, id .. ": url call was successful: " .. response.status .. " - " .. url .. " - " .. requestBody)
       else
         query = url .. " body: " .. requestBody
         errorlog(id .. ": request '" .. query .. "' failed: " .. response.status .. " -- " .. response.data .. " R:" .. tostring(retryAgain))
@@ -101,37 +105,59 @@ local function setup()
 end
 
 -------------------------------------------------------------------------------
+local function check()
+  log(4, "Check light conditions.")
+  
+  local state = fibaro:getGlobal(stateVariableName) 
+  local when = fibaro:getGlobalModificationTime(stateVariableName)
+
+  if tonumber(state) > 0 then
+    -- waiting to get dark
+    
+    local value = fibaro:getValue(checkDarknessDeviceID, "value")
+    
+    if tonumber(value) <= whenIsItTooDark then
+      if os.time() - tonumber(when) > timeBetweenStateChangeInMinutes * 60 then
+        log(1, "Getting dark with " .. tostring(value) .. ", need " .. tostring(whenIsItTooDark));
+        onGettingDark()
+        fibaro:setGlobal(stateVariableName, "0")
+      else
+        log(2, "Getting dark but too quick to change.")
+      end
+    else
+      log(3, "Not dark enough with " .. tostring(value) .. ", need " .. tostring(whenIsItTooDark))
+    end
+  else
+    -- waiting until it is too bright
+    
+    local value = fibaro:getValue(checkBrightnessDeviceID, "value")
+    
+    if tonumber(value) >= whenIsItTooBright then
+      log(1, "Getting bright with " .. tostring(value) .. ", need " .. tostring(whenIsItTooBright));
+      onTooBright()
+      fibaro:setGlobal(stateVariableName, "1")
+    else
+      log(3, "Not bright enough with " .. tostring(value) .. ", need " .. tostring(whenIsItTooBright))
+    end
+  end
+end
+
+-------------------------------------------------------------------------------
+local function checkLoop()
+  check()
+  setTimeout(checkLoop, frequencyToCheckInMinutes * 60 * 1000)
+end
+
+-------------------------------------------------------------------------------
 -- Main loop starts here
 -------------------------------------------------------------------------------
 
 setup()
-log(2, "Check light conditions.")
-local state = fibaro:getGlobal(stateVariableName)
 
-if tonumber(state) > 0 then
-  -- waiting to get dark
-  
-  local value = fibaro:getValue(checkDarknessDeviceID, "value")
-  
-  if tonumber(value) <= whenIsItTooDark then
-    log(1, "Getting dark with " .. tostring(value) .. ", need " .. tostring(whenIsItTooDark));
-    onGettingDark()
-    fibaro:setGlobal(stateVariableName, "0")
-  else
-    log(3, "Not dark enough with " .. tostring(value) .. ", need " .. tostring(whenIsItTooDark))
-  end
-  
+local sourceTrigger = fibaro:getSourceTrigger()
+
+if sourceTrigger['type'] == 'autostart' then
+  checkLoop()
 else
-  -- waiting until it is too bright
-  
-  local value = fibaro:getValue(checkBrightnessDeviceID, "value")
-  
-  if tonumber(value) >= whenIsItTooBright then
-    log(1, "Getting bright with " .. tostring(value) .. ", need " .. tostring(whenIsItTooBright));
-    onTooBright()
-    fibaro:setGlobal(stateVariableName, "1")
-  else
-    log(3, "Not bright enough with " .. tostring(value) .. ", need " .. tostring(whenIsItTooBright))
-  end
+  check()
 end
-
