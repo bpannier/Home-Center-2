@@ -148,7 +148,9 @@ local function onAlarmDelayed()
   -- Example, change it. 
   -- I let Google Home say something so that I do not forget to disarm the alarm
   -- see here how: https://github.com/biofects/Google-Home-Messages
+  fibaro:sleep( 8 * 1000 )
   sendData("GoogleHome", "http://nas2:8092/google-home-messages", "POST", '{"text":"Hallo","ipaddress":"192.168.178.49","token":"mysec"}', true)
+  sendData("GoogleHome", "http://nas2:8092/google-home-messages", "POST", '{"text":"Hallo","ipaddress":"192.168.178.46","token":"mysec"}', true)
 end
 
 -------------------------------------------------------------------------------

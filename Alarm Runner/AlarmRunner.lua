@@ -292,12 +292,12 @@ local function checkAlarm()
       
       if checkForMotion() then
         log("Motion detected while armed.")
-        setAlarmDelayedState("Motion detected: " .. sourceTrigger['propertyName'])
+        setAlarmDelayedState("Motion detected: " .. fibaro:getName(sourceTrigger['deviceID']))
       end
       
       if checkAllDoors() then
         log("Door detected while armed.")
-        setAlarmDelayedState("Door change detected: " .. sourceTrigger['propertyName'])
+        setAlarmDelayedState("Door change detected: " .. fibaro:getName(sourceTrigger['deviceID']))
       end
     else
       errorlog("Unknown state: " .. getState())
