@@ -112,7 +112,7 @@ local function getHeatingSlotEnd(now, heatingDataProps, timeOfDay)
     
   local tmp = os.time({year=today["year"], month=today["month"], day=today["day"], hour=heatingDataProps[timeOfDay]["hour"], min=heatingDataProps[timeOfDay]["minute"]})
   
-  --print("UNTIL: " .. timeOfDay .. " " .. os.date("%x %X", tmp) .. " -- " .. tostring(today["day"]) .. " " .. tostring(heatingDataProps[timeOfDay]["hour"]) .. " " .. tostring(heatingDataProps[timeOfDay]["minute"]) .. " -- " .. tostring(tmp))
+  log(6, "UNTIL: " .. timeOfDay .. " " .. os.date("%x %X", tmp) .. " -- " .. tostring(today["day"]) .. " " .. tostring(heatingDataProps[timeOfDay]["hour"]) .. " " .. tostring(heatingDataProps[timeOfDay]["minute"]) .. " -- " .. tostring(tmp))
   return tmp
 end
 
@@ -122,7 +122,7 @@ local function getHeatingPlan(now, heatingDataProps)
   
   local dayName = string.lower(os.date("%A",now))
   
-  --print("START: " .. dayName .. " " .. os.date("%x %X", now) .. " -- " .. tostring(now))
+  log(6, "START: " .. dayName .. " " .. os.date("%x %X", now) .. " -- " .. tostring(now))
   
   if getHeatingSlotEnd(now, heatingDataProps[dayName], "night") <= now then
     -- it is night, get tomorrows morning as this is our end time
