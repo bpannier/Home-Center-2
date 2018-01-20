@@ -55,7 +55,7 @@
   "hideControls": false,
   "id": null,
   "links": [],
-  "refresh": "1m",
+  "refresh": "30s",
   "rows": [
     {
       "collapse": false,
@@ -134,8 +134,9 @@
                 }
               ],
               "measurement": "variable",
+              "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT count(\"value\") FROM \"variable\" WHERE \"variable\" = 'alarm' AND \"value\" > 0 AND $timeFilter",
+              "query": "SELECT last(\"value\") FROM \"variable\" WHERE \"variable\" = 'alarm' AND \"value\" > 0 AND $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -244,6 +245,7 @@
                 }
               ],
               "measurement": "variable",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
               "resultFormat": "time_series",
@@ -281,7 +283,7 @@
               "value": "null"
             }
           ],
-          "valueName": "avg"
+          "valueName": "max"
         },
         {
           "cacheTimeout": null,
@@ -355,6 +357,7 @@
                 }
               ],
               "measurement": "dead",
+              "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT SUM(last) FROM (SELECT last(\"value\") FROM \"dead\" WHERE \"device\" =~ /^$dead$/ AND $timeFilter GROUP BY \"device\")",
               "rawQuery": true,
@@ -394,7 +397,7 @@
               "value": "null"
             }
           ],
-          "valueName": "avg"
+          "valueName": "max"
         },
         {
           "cacheTimeout": null,
@@ -583,7 +586,7 @@
               "measurement": "tamper",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"value\") FROM \"tamper\" WHERE \"device\" =~ /^$tamper$/ AND \"value\" > 0 AND $timeFilter GROUP BY time($interval) fill(null)",
+              "query": "SELECT last(\"value\") FROM \"tamper\" WHERE \"device\" =~ /^$tamper$/ AND \"value\" > 0 AND $timeFilter GROUP BY time($interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -751,7 +754,7 @@
     },
     {
       "collapse": false,
-      "height": 285,
+      "height": 290,
       "panels": [
         {
           "aliasColors": {},
@@ -783,7 +786,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 12,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -811,7 +814,10 @@
                 }
               ],
               "measurement": "temperature",
+              "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT distinct(\"value\") FROM \"temperature\" WHERE (\"device\" =~ /^$temp$/) AND $timeFilter GROUP BY time($interval), \"device\" fill(null)",
+              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -841,126 +847,6 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "Temperature",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "celsius",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "${DS_HC2}",
-          "decimals": 1,
-          "fill": 0,
-          "id": 2,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "$tag_device",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "device"
-                  ],
-                  "type": "tag"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "measurement": "thermostat",
-              "policy": "default",
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "distinct"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "device",
-                  "operator": "=~",
-                  "value": "/^$therm$/"
-                }
-              ]
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Thermostate",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1336,6 +1222,7 @@
                 }
               ],
               "measurement": "variable",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
               "resultFormat": "time_series",
@@ -1362,7 +1249,7 @@
               ]
             },
             {
-              "alias": "$tag_device",
+              "alias": "$tag_device T",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1385,6 +1272,7 @@
                 }
               ],
               "measurement": "tamper",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "G",
               "resultFormat": "time_series",
@@ -1434,6 +1322,7 @@
                 }
               ],
               "measurement": "water",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "F",
               "resultFormat": "time_series",
@@ -2127,6 +2016,259 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_HC2}",
+          "decimals": 1,
+          "fill": 0,
+          "id": 2,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_device",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "device"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "thermostat",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "device",
+                  "operator": "=~",
+                  "value": "/^$therm$/"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Thermostat",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "celsius",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_HC2}",
+          "fill": 0,
+          "id": 20,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_device",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "device"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "thermostat_target",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "device",
+                  "operator": "=~",
+                  "value": "/^$therm$/"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Thermostat Target",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "celsius",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_HC2}",
           "fill": 4,
           "id": 10,
           "legend": {
@@ -2163,9 +2305,16 @@
                     "$interval"
                   ],
                   "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "diagnostics",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
               "resultFormat": "time_series",
@@ -2481,6 +2630,7 @@
                 }
               ],
               "measurement": "diagnostics",
+              "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
               "resultFormat": "time_series",
@@ -2932,7 +3082,7 @@
     ]
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -2962,5 +3112,5 @@
   },
   "timezone": "browser",
   "title": "Appartment",
-  "version": 4
+  "version": 15
 }
