@@ -330,6 +330,7 @@ else
     log('Trigger: global variable changed: ' .. sourceTrigger['name'] .. " = " .. tostring(var))
   elseif sourceTrigger['type'] == 'other' then
     --log('Trigger: manually called')
+    log('Trigger: Manual - State: ' ..  getState() .. " - Alarm: " .. tostring(isAlarmTriggered()) .. " - Presence:" .. getPresence())
   else
     log("Trigger unknown: " .. sourceTrigger['type'])
   end

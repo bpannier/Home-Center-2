@@ -94,7 +94,7 @@ end
 -------------------------------------------------------------------------------
 -- use sendData if you like to call any URL via method (GET or POST)
 local function sendData (id, url, method, requestBody, retryAgain)
-  local returnValue = false
+
   local httpClient = net.HTTPClient({timeout=3000})
   
   httpClient:request(url, {
@@ -107,10 +107,9 @@ local function sendData (id, url, method, requestBody, retryAgain)
     success = function(response)
       if (response.status >= 200 and response.status < 300) then
         log(id .. ": url call was successful: " .. response.status .. " - " .. url .. " - " .. requestBody)
-        returnValue = true
       else
         query = url .. " body: " .. requestBody
-        errorlog(id .. ": request '" .. query .. "' failed: " .. response.status .. " -- " .. response.data .. " R:" .. tostring(retryAgain))
+        errorlog(id .. ": request '" .. url .. "' failed: " .. response.status .. " -- " .. query .. " R:" .. tostring(retryAgain))
         if (retryAgain == true) then
           sendData(id, requestBody, false)
         end
@@ -118,13 +117,12 @@ local function sendData (id, url, method, requestBody, retryAgain)
     end,
     error = function(response)
       query = url .. " body: " .. requestBody
-      errorlog(id .. ": request '" .. query .. "' failed " .. tostring(response) .. " -- R:" .. tostring(retryAgain))
+      errorlog(id .. ": request '" .. url .. "' failed " .. response.data .. " -- R:" .. tostring(retryAgain))
       if (retryAgain == true) then
         sendData(id, requestBody, false)
       end
     end
   })
-  return returnValue
 end
 
 -------------------------------------------------------------------------------
