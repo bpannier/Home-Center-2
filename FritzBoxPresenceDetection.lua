@@ -10,7 +10,7 @@
 ------------------------------------------------------------------------------
 -- This scene tracks a given device which is or was connected to a Fritz.box router.
 -- When the device is found a given global variable will be set accordingly to
--- to the connection state of the device. If the device is connected it 1 and
+-- to the connection state of the device. If the device is connected 1 and
 -- 0 otherwise.
 -- I use this scene to track the presence of persons as I assume their mobile
 -- phone is connected when they are at home and they will take their mobile
@@ -32,6 +32,7 @@
 --getConnectionInfos(function(...) for k,v in pairs({...}) do print(tostring(k) .. ": " .. tostring(v)) end end )
 --
 -- by Benjamin Pannier <github@ka.ro>
+-- latest version: https://github.com/bpannier/Home-Center-2
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
