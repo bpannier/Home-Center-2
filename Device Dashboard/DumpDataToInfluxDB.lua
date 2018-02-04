@@ -63,6 +63,8 @@
 %% events
 %% globals
 BenStatus
+BPhone
+KPhone
 alarm
 DisableAlarm
 --]]
@@ -117,7 +119,7 @@ local diagnosticsDevicename = "HC2"
 --
 local variableList =
 {
-  variable = {"BenStatus", "alarm", "DisableAlarm"}
+  variable = {"BenStatus", "alarm", "DisableAlarm", "BPhone", "KPhone"}
 }
 
 -- what are the devices which will be dumped.
@@ -166,7 +168,7 @@ local tcpTimeout = 10 * 1000
 
 -- if set after an amount of write to the db problems some warning will be trigged
 -- 0 to disable
-local warnOnConnectionProblems = 50
+local warnOnConnectionProblems = 100
 
 -------------------------------------------------------------------------------
 -- Internal variables
@@ -343,6 +345,34 @@ local function processDiagnosticData()
       sendData("diagnostics", requestBody, true)
     end
   end
+  
+  fibaro:sleep(600)
+  local diagnosticsData2 = api.get("/diagnostics")
+  local cpuCounter = 1
+
+  for key, cpus in ipairs(diagnosticsData1["cpuLoad"]) do
+    for name, cpu in pairs(cpus) do
+      
+      total1 = diagnosticsData["cpuLoad"][cpuCounter][name]["user"] + diagnosticsData["cpuLoad"][cpuCounter][name]["nice"] +
+               diagnosticsData["cpuLoad"][cpuCounter][name]["idle"] + diagnosticsData["cpuLoad"][cpuCounter][name]["system"]
+               
+      total2 = diagnosticsData2["cpuLoad"][cpuCounter][name]["user"] + diagnosticsData2["cpuLoad"][cpuCounter][name]["nice"] +
+               diagnosticsData2["cpuLoad"][cpuCounter][name]["idle"] + diagnosticsData2["cpuLoad"][cpuCounter][name]["system"]
+               
+      total = total2 - total1
+      
+      user = string.format("%.1f", (diagnosticsData2["cpuLoad"][cpuCounter][name]["user"] - diagnosticsData["cpuLoad"][cpuCounter][name]["user"]) * 100 / total)
+      nice = string.format("%.1f", (diagnosticsData2["cpuLoad"][cpuCounter][name]["nice"] - diagnosticsData["cpuLoad"][cpuCounter][name]["nice"]) * 100 / total)
+      idle = string.format("%.1f", (diagnosticsData2["cpuLoad"][cpuCounter][name]["idle"] - diagnosticsData["cpuLoad"][cpuCounter][name]["idle"]) * 100 / total)
+      system = string.format("%.1f", (diagnosticsData2["cpuLoad"][cpuCounter][name]["system"] - diagnosticsData["cpuLoad"][cpuCounter][name]["system"]) * 100 / total)
+      
+      requestBody = "diagnostics,device=" .. diagnosticsDevicename .. ",what=cpu-percent,name=" .. name .. " user=" .. user .. ",nice=" .. nice .. ",system=" .. system .. ",idle=" .. idle
+      sendData("diagnostics", requestBody, true)
+    end
+    
+    cpuCounter = cpuCounter + 1
+  end
+  
 end
 
 -------------------------------------------------------------------------------
@@ -378,14 +408,6 @@ local function tableToString(o)
    else
       return tostring(o)
    end
-end
-
--------------------------------------------------------------------------------
--- This hack is used with pcall to make sure can emulate a try catch statement
-local decodeJsonVarIn
-local decodeJsonVarOut
-local function decodeJsonFunc()
-  decodeJsonVarOut = json.decode(decodeJsonVarIn)
 end
 
 -------------------------------------------------------------------------------
@@ -433,24 +455,23 @@ local function dumpGivenSceneParameters(params)
       
         local requestBody = deviceClass .. ",device=" .. deviceName .. " "
         
-        -- quite hacky, making sure corrupted parameters do not brake the running process
-        decodeJsonVarIn = values
-        decodedValues = nil
-        local status, err = pcall(decodeJsonFunc)
+        local status, decodedValues = pcall(function()
+          return json.decode(values)
+        end)
         
         if status == false then
           -- try the given value again with adding {} around the given value
           
           log(2, "Given parameter could not be decoded, try it again with {} surrounded: " .. values)
-          decodeJsonVarIn = "{" .. values .. "}"
-          status, err = pcall(decodeJsonFunc)
+          
+          status, decodedValues = pcall(function()
+            return json.decode("{" .. values .. "}")
+          end)
         end
         
         if status == false then
           log(0, "Received parameter can not be decoded via JSON: '" .. err .. "': " .. tableToString(params))
         else
-          decodedValues = decodeJsonVarOut
-          
           if decodedValues == nil then
             log(0, "Received parameter value is empty: " .. tableToString(params))
           else
