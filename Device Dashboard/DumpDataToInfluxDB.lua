@@ -350,7 +350,7 @@ local function processDiagnosticData()
   local diagnosticsData2 = api.get("/diagnostics")
   local cpuCounter = 1
 
-  for key, cpus in ipairs(diagnosticsData1["cpuLoad"]) do
+  for key, cpus in ipairs(diagnosticsData["cpuLoad"]) do
     for name, cpu in pairs(cpus) do
       
       total1 = diagnosticsData["cpuLoad"][cpuCounter][name]["user"] + diagnosticsData["cpuLoad"][cpuCounter][name]["nice"] +
