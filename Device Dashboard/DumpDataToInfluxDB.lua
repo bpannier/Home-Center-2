@@ -255,13 +255,17 @@ local function sendDeviceData(deviceClass, deviceName, deviceID, retry)
   end
   
   local roomName = tostring(fibaro:getRoomNameByDeviceID(deviceID))
+  roomName = string.gsub(roomName, " ", "")
+  
   local sectionName = "Unknown"
   local sectionID = fibaro:getSectionID(deviceID)
   
   if sectionID > 0 then
     local section = api.get("/sections/" .. tostring(sectionID))
-    sectionName = tostring(section.name)
+    sectionName = string.gsub(tostring(section.name), " ", "")
   end
+  
+  deviceName = string.gsub(deviceName, " ", "")
   
   local requestBody = deviceClass .. ",device=" .. deviceName .. ",room=" .. roomName .. ",section=" .. sectionName .. " value=" .. value
   sendData(deviceID, requestBody, true)
