@@ -251,9 +251,19 @@ local function sendDeviceData(deviceClass, deviceName, deviceID, retry)
   
   if value == nil then
     errorLog("Value is NIL: " .. deviceClass .. " - " .. deviceName)
+    return
   end
   
-  local requestBody = deviceClass .. ",device=" .. deviceName .. " value=" .. value
+  local roomName = tostring(fibaro:getRoomNameByDeviceID(deviceID))
+  local sectionName = "Unknown"
+  local sectionID = fibaro:getSectionID(deviceID)
+  
+  if sectionID > 0 then
+    local section = api.get("/sections/" .. tostring(sectionID))
+    sectionName = tostring(section.name)
+  end
+  
+  local requestBody = deviceClass .. ",device=" .. deviceName .. ",room=" .. roomName .. ",section=" .. sectionName .. " value=" .. value
   sendData(deviceID, requestBody, true)
   
   if reportDeadDevice then
@@ -348,9 +358,8 @@ local function processDiagnosticData()
   
   fibaro:sleep(600)
   local diagnosticsData2 = api.get("/diagnostics")
-  local cpuCounter = 1
 
-  for key, cpus in ipairs(diagnosticsData["cpuLoad"]) do
+  for cpuCounter, cpus in ipairs(diagnosticsData["cpuLoad"]) do
     for name, cpu in pairs(cpus) do
       
       total1 = diagnosticsData["cpuLoad"][cpuCounter][name]["user"] + diagnosticsData["cpuLoad"][cpuCounter][name]["nice"] +
@@ -369,10 +378,7 @@ local function processDiagnosticData()
       requestBody = "diagnostics,device=" .. diagnosticsDevicename .. ",what=cpu-percent,name=" .. name .. " user=" .. user .. ",nice=" .. nice .. ",system=" .. system .. ",idle=" .. idle
       sendData("diagnostics", requestBody, true)
     end
-    
-    cpuCounter = cpuCounter + 1
   end
-  
 end
 
 -------------------------------------------------------------------------------
