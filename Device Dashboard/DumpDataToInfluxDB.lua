@@ -4,8 +4,12 @@
 90 value
 44 value
 161 value
-105 value 
-59 value 
+105 value
+60 value
+59 value
+55 value
+56 value
+57 value
 61 value
 149 value
 33 power
@@ -51,6 +55,10 @@
 194 value
 195 value
 196 value
+222 value
+222 tamper
+223 value
+224 value
 29 targetLevel
 31 targetLevel
 15 targetLevel
@@ -132,19 +140,21 @@ local variableList =
 --
 local deviceList =
 {
-  temperature = { netatmoOben = 54, wohnzimmer = 90, flurOben = 44, kueche = 161, kammer = 105,  schlafzimmer = 61, flurUnten = 149, terasse = 59, buero = 168, tuerUnten = 173, bad = 193},
+  temperature = { netatmoOben = 54, wohnzimmer = 90, flurOben = 44, kueche = 161, kammer = 105,  schlafzimmer = 61, flurUnten = 149, terasse = 59, buero = 168, tuerUnten = 173, bad = 193, hausflur = 223},
   energy = { leselampe = 33, hifi = 101, wohnLampe = 156, waschmaschine = 95, trockner = 99, edv = 158 },
-  motion = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, buero = 167, bad = 192 },
+  motion = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, buero = 167, bad = 192, hausflur = 222 },
   thermostat        = { tv = 29, sofa = 31, buero = 15, flurUnten = 17, schlafzimmer = 21, flurLinks = 23, flurMitte = 25, kueche = 27},
   thermostat_target = { tv = 29, sofa = 31, buero = 15, flurUnten = 17, schlafzimmer = 21, flurLinks = 23, flurMitte = 25, kueche = 27},
   door = { balkonWohn = 135, oben = 138, balkonKueche = 132, unten = 172},
-  light = { kueche = 162, flurOben = 45, wohnzimmer = 91, flurUnten = 150, buero = 169, bad = 194 },
+  light = { kueche = 162, flurOben = 45, wohnzimmer = 91, flurUnten = 150, buero = 169, bad = 194, hausflur = 224 },
   co2 = {netatmoOben = 55, schlafzimmer = 63},
   humidity = {netatmoOben = 56, terasse = 60, schlafzimmer = 62, bad = 195},
   rain = {terasse = 64},
-  tamper = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, kammer = 103, buero = 167, bad = 192 },
+  tamper = { kueche = 160, flurUnten = 148, wohnzimmer = 89, flurOben = 43, kammer = 103, buero = 167, bad = 192, hausflur = 222 },
   water = { waschmaschine = 103 },
-  uv = { bad = 196 }
+  uv = { bad = 196 },
+  pressure = { netatmoOben = 57 },
+  battery = { tvT = 29, sofaT = 31, bueroT = 15, flurUntenT = 17, schlafzimmerT = 21, flurLinksT = 23, flurMitteT = 25, kuecheT = 27, kuecheM = 160, flurUntenM = 148, wohnzimmerM = 89, flurObenM = 43, bueroM = 167, hausflurM = 222, balkonWohnTuer = 135, oben = 138, balkonKuecheTuer = 132, untenTuer = 172, waschmaschine = 103 }
 }
 
 -- for certain devices you like to give an explicit Z-wave lookup key for others the defaultDeviceValueLookup will be used.
@@ -154,7 +164,8 @@ local deviceValueLookup =
 {
   energy = "power",
   tamper = "tamper",
-  thermostat_target = "targetLevel"
+  thermostat_target = "targetLevel",
+  battery = "batteryLevel"
 }
 
 -- the default lookup key for the z-wave devices which are not given in deviceValueLookup
@@ -250,7 +261,7 @@ local function sendDeviceData(deviceClass, deviceName, deviceID, retry)
   local value = fibaro:getValue(deviceID, lookup)
   
   if value == nil then
-    errorLog("Value is NIL: " .. deviceClass .. " - " .. deviceName)
+    errorlog("Value is NIL: " .. deviceClass .. " - " .. deviceName)
     return
   end
   
